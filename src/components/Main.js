@@ -9,6 +9,7 @@ import Filtracija from './Filtracija'
 import { Link } from 'react-router-dom';
 import $ from 'jquery';
 import moment from 'moment';
+import Cookies from 'js-cookie'
 
 function Main() {
  
@@ -377,8 +378,8 @@ function Main() {
   };
   
   const ucitajKorisnika = () => {
-    const korisnik_Id = 1;
-    const url = `https://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
+    const korisnik_Id = Cookies.get('userID');
+    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
@@ -409,7 +410,7 @@ function Main() {
                           {korisnik ? (
                           <div className="usr-pic">
                             <img className="profilnaslikahomepage"
-                                    src={korisnik.korisnikImage ? `https://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/100x100"} />
+                                    src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/100x100"} />
                           </div>) : (
                               <p>Korisnik nije dostupan</p>
                             )}
@@ -494,7 +495,13 @@ function Main() {
                   <div className="main-ws-sec">
                     <div className="post-topbar">
                       <div className="user-picy">
-                        <img src="http://via.placeholder.com/100x100" />
+                      {korisnik ? (
+                          <div className="usr-pic">
+                            <img className="profilnaslikahomepageobjava"
+                                    src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/100x100"} />
+                          </div>) : (
+                              <p>Korisnik nije dostupan</p>
+                            )}
                       </div>
                       <div className="post-st">
                         <ul>

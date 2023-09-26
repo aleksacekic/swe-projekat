@@ -17,6 +17,19 @@
 	/* padding-bottom:4px; */
 }
 
+.slikakorisnikakomentar{
+	height: 40px;
+	width: 40px;
+}
+
+.profilnaslikahomepageobjava{
+	height: 50px;
+	width: 50px !important;
+}
+
+.odjavise{
+	cursor: pointer;
+}
 
 .error-message{
 	margin-bottom: 10px;
@@ -89,8 +102,8 @@
 
 .pr_dog_klasa {
 	padding-top: 60px;
-	padding-left: 33%;
-	padding-right: 33%; 
+	padding-left: 28%;
+	padding-right: 28%; 
 	padding-bottom: 50px;
 }
 
@@ -122,6 +135,18 @@
 
 .profilimeusername{
 	padding-top:15px !important;
+}
+
+.job_descp2
+{
+	display:flex;
+	justify-content: center;
+	padding: 20px;
+	margin: 10px;
+	border:1px solid black;
+	color:white;
+	background-color: #e93933;
+	font-weight: bold;
 }
 
 .drugispanprofil{
@@ -1436,9 +1461,11 @@ nav > ul > li > a:hover {
 	font-size: 14px;
 	font-weight: 600;
 }
+
 .tc {
 	text-align: center;
 }
+
 .tc a {
 	color: #000;
 }

@@ -6,12 +6,15 @@ import Reakcije from './Reakcije'
 import moment from 'moment';
 import { format, isAfter } from 'date-fns';
 import { Link } from 'react-router-dom';
-import $ from 'jquery';
+import $, { error } from 'jquery';
+import Cookies from 'js-cookie'
+import { useNavigate } from 'react-router-dom';
+
 
 function Dogadjaj({ primljenDatum, primljenNaziv}) {
   // console.log(filtriraniDogadjaji);
   const google = window.google;
-
+  const navigate = useNavigate();
 //#region 
   
 
@@ -451,9 +454,23 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
 
   const fetchDogadjaji = () => {
     //console.log("Usao sam u ClassicFetch");
-    const url = `https://localhost:7186/Dogadjaj/VratiDogadjajeZaHomePage/${brojPosiljke}/${ukupnoElemenata}`;
-    fetch(url)
-      .then(res => res.json())
+    const url = `http://localhost:7186/Dogadjaj/VratiDogadjajeZaHomePage/${brojPosiljke}/${ukupnoElemenata}`;
+    fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(res => {
+        if (res.status === 401){
+          navigate('/')
+        }
+        else{
+          return res.json();
+        }
+        
+      })
+      .catch(error =>{
+        console.log("");
+      })
       .then(data => {
         console.log(data);
         if (data.kraj === undefined) {
@@ -468,6 +485,9 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
           const dogadjajIds = data.dogadjaji.map(dogadjaj => dogadjaj.id);
           setIDucitanidogadjaji(prevIds => [...prevIds, ...dogadjajIds]);
         }
+      }
+      ).catch(error =>{
+        console.log("");
       })
     setTrenutno(0);
     //console.log("Izlazim iz ClassicFetch");
@@ -480,8 +500,11 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
     //console.log("Usao sam u DatumFetch");
     if (primljenDatum.getTime() !== (new Date("2000-01-01")).getTime()) {
       const formattedDate = format(prosledjenDatum, 'yyyy-MM-dd');
-      const url = `https://localhost:7186/Dogadjaj/VratiDogadjajePoDatumu/${formattedDate}/${brojPosiljkeDatum}/${ukupnoElemenataDatum}`;
-      fetch(url)
+      const url = `http://localhost:7186/Dogadjaj/VratiDogadjajePoDatumu/${formattedDate}/${brojPosiljkeDatum}/${ukupnoElemenataDatum}`;
+      fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+      })
         .then(res => res.json())
         .then(data => {
           if (data.kraj === undefined) {
@@ -508,8 +531,11 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
       if(primljenNaziv !== "default")
       { 
         console.log("Usao sam u NazivFetch:" +"Posiljka: " +brojPosiljkeNaziv +"  ukupno: "+ ukupnoElemenataNaziv);
-        const url = `https://localhost:7186/Dogadjaj/VratiDogadjajePoNazivu/${prosledjenNaziv}/${brojPosiljkeNaziv}/${ukupnoElemenataNaziv}`;
-        await fetch(url)
+        const url = `http://localhost:7186/Dogadjaj/VratiDogadjajePoNazivu/${prosledjenNaziv}/${brojPosiljkeNaziv}/${ukupnoElemenataNaziv}`;
+        await fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+        })
         .then(res => res.json())
         .then(data => {
           if(data.kraj === undefined)
@@ -540,7 +566,7 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
 
   // BRISANJE OBJAVE
   const obrisiObjavu = (id,index) => {
-    const url = `https://localhost:7186/Dogadjaj/IzbrisiDogadjaj/${id}`;
+    const url = `http://localhost:7186/Dogadjaj/IzbrisiDogadjaj/${id}`;
     fetch(url, {
       method: 'DELETE',
     })
@@ -585,8 +611,8 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
       return;
     }
 
-    const apiUrl = `https://localhost:7186/Pr_dog/PrijaviDogadjaj/${id}`;
-    let razlogUrl = `https://localhost:7186/Razlog/KreirajRazlog/${id}/${selectedOption}/${opis}`;
+    const apiUrl = `http://localhost:7186/Pr_dog/PrijaviDogadjaj/${id}`;
+    let razlogUrl = `http://localhost:7186/Razlog/KreirajRazlog/${id}/${selectedOption}/${opis}`;
     if (selectedOption === "ostalo" && opis === "") {
       razlogUrl += "bezOpisa";
     }
@@ -599,11 +625,19 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
     try {
       const response1 = await fetch(apiUrl, {
         method: 'POST',
+        credentials: 'include',
       });
       console.log(response1);
 
+      if(response1.ok){
+        console.log("sve okej brt")
+      }
       if (!response1.ok) {
-        throw new Error('Greška prilikom slanja prijave objave.');
+        console.log('Greska prilikom slanja prijave objave.');
+      }
+      if(response1.status === 401)
+      {
+        navigate('/')
       }
 
       
@@ -613,7 +647,7 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
         console.log(response2);
         if (!response2.ok) {
           
-          throw new Error('Greška prilikom slanja razloga prijave.');
+          console.log('Greška prilikom slanja razloga prijave.');
         }
       
 
@@ -637,8 +671,8 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
   };
   
   const ucitajKorisnika = () => {
-    const korisnik_Id = 2;
-    const url = `https://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
+    const korisnik_Id = Cookies.get('userID');
+    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
@@ -660,22 +694,26 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
         <div className="post-bar" key={dogadjaj.id}>
           <div className="post_topbar">
             <div className="usy-dt">
-            <img
-                                    className="profilnaslikaobjava"
-                                    src={korisnik.korisnikImage ? `https://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/50x50"}
-                                  />
+            {korisnik ? (
+                              <img
+                              className="profilnaslikaobjava"
+                              src={dogadjaj.slikaKorisnika ? `http://localhost:7186/resources/${dogadjaj.slikaKorisnika}` : "http://via.placeholder.com/50x50"}
+                       />
+                            ) : (
+                              <p>Korisnik nije dostupan</p>
+                            )}
+            
               <div className="usy-name">
-                <h3>{korisnik.ime} {korisnik.prezime}</h3>
+                <h3>@{dogadjaj.userName_Kreatora}</h3>
                 <span><img src="images/clock.png" />{dogadjaj.formattedDatum}</span>
               </div>
             </div>
-            <div className={`ed-opts ${activeIndex === index ? 'active' : ''}`}>
+            {/* <div className={`ed-opts ${activeIndex === index ? 'active' : ''}`}>
               <a className="ed-opts-open" onClick={() => toggleOptions(index)}><i className="la la-ellipsis-v" /></a>
               <ul className={`ed-options ${activeIndex === index ? 'active' : ''}`}>
-                {/* <li><a className='opcijeobjava'>Uredi objavu</a></li> */}
                 <li><a className='opcijeobjava' onClick={() => obrisiObjavu(dogadjaj.id)}>Obrisi objavu</a></li>
               </ul>
-            </div>
+            </div> */}
           </div>
           <div className="job_descp">
             <h3>{dogadjaj.naslov}</h3>
@@ -687,7 +725,7 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
             {/* SLIKA DOGADJAJA */}
             {/* <img src={dogadjaj.dogadjajImage} className="rounded float-left dogadjaj-slika" /> */}
             {dogadjaj.dogadjajImage && (
-              <img src={`https://localhost:7186/resources/${dogadjaj.dogadjajImage}`} className="rounded float-left dogadjaj-slika" />
+              <img src={`http://localhost:7186/resources/${dogadjaj.dogadjajImage}`} className="rounded float-left dogadjaj-slika" />
             )}
             {/* MAPA POCETAK */}
             <HideShowMapa
@@ -705,10 +743,10 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
                 <img src="images/com.png" className="com-slika" />
                 <a href="#" className="com">Komentar</a>
               </li>
-              <li className="posaljidiv">
+              {/* <li className="posaljidiv">
                 <img src="images/share1.png" />
                 <a href="#" className="share">Posalji prijatelju</a>
-              </li>
+              </li> */}
               <li className="prijavidiv" onClick={(event) => prikaziPopupFormu(event, dogadjaj.id)}>
                 <img src="images/report17.png" />
                 <a href="#" className="report-to-admin">Prijavi objavu</a>
@@ -761,7 +799,7 @@ function Dogadjaj({ primljenDatum, primljenNaziv}) {
           {/* DEO ZA KOMENTARE ! ! !  */}
           {prikaziKomentare && prikazaniDogadjaj === dogadjaj.id && (
             <div className="comment-section">
-              <Komentari dogadjajId={dogadjaj.id} prikazaniDogadjaj={prikazaniDogadjaj} />
+              <Komentari dogadjajId={dogadjaj.id} prikazaniDogadjaj={prikazaniDogadjaj} korisnikovaSlika={korisnik.korisnikImage}/>
             </div>)}
         </div>))}
       <button className='ucitajjosdogadjaja' onClick={() => UcitajDalje()}>Ucitaj jos dogadjaja...</button>

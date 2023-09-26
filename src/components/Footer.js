@@ -1,4 +1,5 @@
 import React from 'react'
+import Cookies from 'js-cookie'
 
 function Footer() {
   return (
@@ -14,8 +15,8 @@ function Footer() {
           <li><a href="#">Copyright Policy</a></li>
         </ul>
         <div className="cp-sec">
-          <img src="images/logo2.png" />
-          <p><img src="images/cp.png" />Copyright 2023</p>
+        <p><img src="images/copy-icon2.png" />Copyright 2023</p>
+              <img className="fl-rgt slikafooter" src="images/eb-logo-dugi2.png" />
         </div>
       </div>{/*tags-sec end*/}
     </div>

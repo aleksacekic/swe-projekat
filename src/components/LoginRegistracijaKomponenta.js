@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
+
 import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 function LoginRegistracijaKomponenta() {
+
+  useEffect(() => {
+    Cookies.remove('token');
+    Cookies.remove('userID');
+  }, []);
+  
+
   const [errors, setErrors] = useState({});
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  
+  const handleSubmit1 = (e) => {
     e.preventDefault();
-
-
     const poljaForme = e.target.elements;
     let isGreska = false;
     const noveGreske = {};
@@ -25,7 +36,128 @@ function LoginRegistracijaKomponenta() {
       return;
     }
 
-  };
+    const username = poljaForme.username.value;
+    const password = poljaForme.password.value;
+
+
+    console.log("PRVA PROVERA");
+    fetch(`http://localhost:7186/Korisnik/LogovanjeKorisnik/${username}/${password}`)
+        .then(res => {
+          if (res.status === 401){
+            navigate('/')
+          }
+          return res.json();
+        })
+        .then(data => {
+            if(data.nema !== undefined)
+            {
+              console.log(data);
+              probajAdmin();
+              console.log("NEMA PODACI ZA KORISNIKA")
+            }
+            else if(data.blokiran !== undefined)
+            {
+              alert("Vas nalog je blokiran");
+            }
+            else
+            {
+              console.log("ULOGOVANJE USPENSO")
+              Cookies.set(`token`, `${data.token}`, { path: '/' });
+              Cookies.set(`userID`, `${data.userID}`, { path: '/' }); 
+              navigate('/pocetna');
+            }
+        })
+
+        console.log("SLEDECE JE PROBA ADMINA")
+    const probajAdmin = () => {
+      fetch(`http://localhost:7186/Administrator/LogovanjeAdministrator/${username}/${password}`,
+      {
+        method: 'GET',
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log("care");
+            if(data.nema !== undefined)
+            {
+              console.log("NEMA NI ADMIN BRT")
+              alert("Pogresan unos!");
+            }
+            else
+            {
+              navigate('/admin');
+            }
+        })
+    }
+    console.log("KRAJ OBA FETCHA")
+}; //ZAVRSAVA ES FUNCIJA SUBMIT!!!!!!!!!!!!!!!!
+// -----------------------------------------------------------------------------------------------
+    
+  
+  const handleSubmit2 = (e) => {
+    e.preventDefault();
+    const poljaForme = e.target.elements;
+    let isGreska = false;
+    const noveGreske = {};
+
+    for (let i = 0; i < poljaForme.length; i++) {
+      const field = poljaForme[i];
+
+      if (field.value.trim() === '') {
+        isGreska = true;
+        noveGreske[field.name] = 'Polje je obavezno.';
+      }
+    }
+
+    if (isGreska) {
+      setErrors(noveGreske);
+      return;
+    }
+
+    const ime = poljaForme.ime.value;
+    const prezime = poljaForme.prezime.value;
+    const korisnickoime = poljaForme.username1.value;
+    const mail = encodeURIComponent(poljaForme.email.value);
+    const datumrodjenja = poljaForme.date.value;
+    const lozinka = poljaForme.password.value;
+    console.log("PREDFETCH")
+    console.log(datumrodjenja)
+    const url = `http://localhost:7186/Korisnik/DodajKorisnika/${ime}/${prezime}/${korisnickoime}/${lozinka}/${datumrodjenja}/${mail}`;
+    console.log(url);
+    fetch(url, {
+      method: 'POST',
+    })
+      .then(response => {
+        if (response.ok) {
+          console.log(response);
+          alert("Uspesno ste registrovani!");
+          window.location.reload();
+          return response;
+          
+        } else {
+          throw new Error('Došlo je do greške prilikom registracije.');
+        }
+      })
+      .then(data => {
+        console.log('Korisnik je uspešno registrovan:', data);
+        // Dodajte odgovarajuće postupanje nakon registracije
+      })
+      .catch(error => {
+        console.error('Greska:', error);
+        // Dodajte odgovarajuće postupanje u slučaju greške
+      });
+      console.log("POSTFETCH")
+
+  }; //ZAVRSAVA SE FUNCIJA SUBMIT2!!!!!!!!!!!!!!!!
+
+  
+
+ 
+
+
+  
+ 
+  
+  
   return (
     <div>
       <div className="sign-in-page">
@@ -49,7 +181,7 @@ function LoginRegistracijaKomponenta() {
                   </ul>
                   <div className="sign_in_sec current" id="tab-1">
                     <h3>Prijava</h3>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit1}>
                       <div className="row">
                         <div className="col-lg-12 no-pdd">
                           <div className="sn-field">                     
@@ -65,21 +197,18 @@ function LoginRegistracijaKomponenta() {
                           </div>
                           {errors.password && <span className="error-message">{errors.password}</span>}
                         </div>
+                        
                         <div className="col-lg-12 no-pdd">
-                          <div className="checky-sec">        
-                            <a href="#" >Zaboravili ste lozinku?</a>
-                          </div>
+                          <button type="submit" value="submit">Prijava</button> 
                         </div>
-                        <div className="col-lg-12 no-pdd">
-                        <Link to="/pocetna"><button type="submit" value="submit">Prijava</button></Link>
-                        </div>
+                        
                       </div>
                     </form>
                   </div>{/*sign_in_sec end*/}
                   <div className="sign_in_sec" id="tab-2">
                     
                     <div className="dff-tab current" id="tab-3">
-                      <form onSubmit={handleSubmit}>
+                      <form onSubmit={handleSubmit2}>
                         <div className="row">
                           <div className="col-lg-12 no-pdd">
                             <div className="sn-field">
@@ -97,10 +226,10 @@ function LoginRegistracijaKomponenta() {
                           </div>
                           <div className="col-lg-12 no-pdd">
                             <div className="sn-field">
-                              <input type="text" name="username" placeholder="Korisnicko ime" autoComplete='off'/>
+                              <input type="text" name="username1" placeholder="Korisnicko ime" autoComplete='off'/>
                               <i className="la la-at" />
                             </div>
-                            {errors.username && <span className="error-message">{errors.username}</span>}
+                            {errors.username1 && <span className="error-message">{errors.username1}</span>}
                           </div>
                           <div className="col-lg-12 no-pdd">
                             <div className="sn-field">
@@ -196,6 +325,9 @@ function LoginRegistracijaKomponenta() {
 
     </div>
   )
+ 
+  
 }
 
-export default LoginRegistracijaKomponenta
+
+export default LoginRegistracijaKomponenta;

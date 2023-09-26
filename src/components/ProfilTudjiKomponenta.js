@@ -1,3 +1,5 @@
+
+
 import React from 'react'
 import lightBlueImage from '../lightblue.jpg';
 import HideShowMapa from './Hide&ShowMapa';
@@ -11,10 +13,34 @@ import { Link } from 'react-router-dom';
 import $ from 'jquery';
 import { Component } from 'react';
 import Cookies from 'js-cookie'
+import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
-function Profil() {
+function ProfilTudjiKomponenta() {
+ 
+
   const navigate = useNavigate();
+  
+
+  const ucitajKorisnika = () => {
+    const korisnik_Id = Cookies.get('tudjiID');
+    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        //console.log(data.datum_rodjenja);
+        const formatiranDatum = formatirajDatum(data.datum_rodjenja);
+        data.datumrodjenja = formatiranDatum;
+        console.log(formatiranDatum);
+        setKorisnik(data);
+        setmojdatum(formatiranDatum);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+
   const [activeIndex, setActiveIndex] = useState(null);
   const toggleOptions = (index) => {
     if (activeIndex === index) {
@@ -26,6 +52,7 @@ function Profil() {
 
 
   useEffect(() => {
+    // Inicijalizacija jQuery koda nakon montiranja komponente
     $(document).ready(function() {
       $('.tab-feed ul li').on("click", function(){
         var tab_id = $(this).attr('data-tab');
@@ -306,78 +333,51 @@ function Profil() {
   const [showOptions, setShowOptions] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null); // za dodavanje slike
 
+  useEffect(() => {
+    ucitajDogadjaje();
+  }, [brojPosiljke]);
+
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     setSelectedImage(file);
   };
 
-  useEffect(() => {
-    if (selectedImage) {
-      dodajSlikuKorisniku();
-    }
-  }, [selectedImage]);
+ 
 
-  const dodajSlikuKorisniku = () => {
-    const korisnikId = Cookies.get('userID'); // ID korisnika
-    const url = `http://localhost:7186/Korisnik/DodajSlikuKorisniku?id_korisnika=${korisnikId}`;
-  
-    const formData = new FormData();
-    formData.append('fajl', selectedImage);
-  
-    fetch(url, {
-      method: 'POST',
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        // Obrada odgovora
-        setKorisnik((prevKorisnik) => ({ ...prevKorisnik, slika: data.slika }));
-        if(selectedImage)
-        {
-          window.location.reload();
-        }
-        setSelectedImage(null);
-        
-         
-      })
-      .catch((error) => {
-        console.log(error);
-        // Obrada greške
-      });
-  };
+ 
   
   const handleCameraIconClick = () => {
   setShowOptions(!showOptions);
 };
 
 
-  useEffect(() => {
-    ucitajDogadjaje();
-  }, [brojPosiljke]);
+
+
+  
   const UcitajDalje = () => {
     setBrojPosiljke(prevBrojPosiljke => prevBrojPosiljke + 1);
   }
 
   const ucitajDogadjaje = () => {
     //console.log("Usao sam u ClassicFetch");
-    const korisnik_Id = Cookies.get("userID");
+    const korisnik_Id = Cookies.get('tudjiID');
     const url = `http://localhost:7186/Korisnik/VratiDogadjajeKorisnika/${korisnik_Id}/${brojPosiljke}/${ukupnoElemenata}`;
-    fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-    })
-    .then(res => {
-      if (res.status === 401){
-        navigate('/')
-      }
-      else{
-        return res.json();
-      }
-    }).catch(error =>{
-      console.log("");
-    })
+    fetch(url,
+      {
+        method: 'GET',
+        credentials: 'include',
+      })
+      .then(res => {
+        if (res.status === 401){
+          navigate('/')
+        }
+        else{
+          return res.json();
+        }
+      }).catch(error =>{
+        console.log("");
+      })
       .then(data => {
         console.log(data);
         if (data.kraj === undefined) {
@@ -402,7 +402,7 @@ function Profil() {
   
   // BRISANJE SLIKE KORISNIKU
   const handleDeleteImage = () => {
-    const korisnik_Id = Cookies.get('userID');
+    const korisnik_Id = Cookies.get('tudjiID');
     const url = `http://localhost:7186/Korisnik/IzbrisiSlikuKorisnika/${korisnik_Id}`;
   
     fetch(url, {
@@ -433,24 +433,7 @@ function Profil() {
     return moment(datum).format('DD.MM.YYYY');
   };
   
-  const ucitajKorisnika = () => {
-    const korisnik_Id = Cookies.get('userID');
-    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        //console.log(data.datum_rodjenja);
-        const formatiranDatum = formatirajDatum(data.datum_rodjenja);
-        data.datumrodjenja = formatiranDatum;
-        console.log(formatiranDatum);
-        setKorisnik(data);
-        setmojdatum(formatiranDatum);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
+ 
   const odrediHoroskopskiZnak = (datum) => {
     console.log(mojdatum);
     console.log(datum);
@@ -536,7 +519,6 @@ function Profil() {
 
   return (
     <div>
-      
 
       <div>
         <section className="cover-sec">
@@ -557,34 +539,13 @@ function Profil() {
                                 <img
                                     className="profilnaslika"
                                     src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/170x170"}
-                                  />
-                                <Button variant="light" className="camera-icon" onClick={handleCameraIconClick}>
-                                  <BsCamera />
-                                </Button>
+                                  />            
                               </div>
                             ) : (
                               <p>Korisnik nije dostupan</p>
                             )}
                           </div>
                           
-                          {showOptions && (
-                          <div className="options">
-                            {korisnik.korisnikImage && (
-                              <div className="option" onClick={handleDeleteImage}>
-                                Izbrisi sliku
-                              </div>
-                            )}
-                            <div className="option" onClick={() => {
-                               document.querySelector('input[type="file"]').click();
-                               dodajSlikuKorisniku(); // Poziv funkcije dodajSlikuKorisniku
-                             }}>
-                               <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-                               Dodaj sliku
-                             </div>
-      
-                           
-                          </div>
-                        )}
 
                         </div>
                         <div className="user_pro_status">
@@ -645,23 +606,15 @@ function Profil() {
                                 <div className="post_topbar">
                                   <div className="usy-dt">
                                    
-                                  {korisnik ? <img
+                                  <img
                                     className="profilnaslikaobjava"
-                                    src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/50x50"}/> : <p>Korisnik nije dostupan</p>}
-                                  
+                                    src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/50x50"}/>
                                  
                                     <div className="usy-name">
                                       {korisnik ? <h3>{korisnik.ime} {korisnik.prezime}</h3> : <p>Korisnik nije dostupan</p>}
                                       <span><img src="images/clock.png" />{dogadjaj.formattedDatum}</span>
                                     </div>
-                                  </div>
-                                  <div className={`ed-opts ${activeIndex === index ? 'active' : ''}`}>
-                                    <a className="ed-opts-open" onClick={() => toggleOptions(index)}><i className="la la-ellipsis-v" /></a>
-                                    <ul className={`ed-options ${activeIndex === index ? 'active' : ''}`}>
-                                      {/* <li><a className='opcijeobjava'>Uredi objavu</a></li> */}
-                                      <li><a className='opcijeobjava' onClick={() => obrisiObjavu(dogadjaj.id)}>Obrisi objavu</a></li>
-                                    </ul>
-                                  </div>
+                                  </div>                    
                                 </div>
                                 <div className="job_descp">
                                   <h3>{dogadjaj.naslov}</h3>
@@ -765,4 +718,4 @@ function Profil() {
   )
 }
 
-export default Profil
+export default ProfilTudjiKomponenta

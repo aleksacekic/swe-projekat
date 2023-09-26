@@ -2,14 +2,49 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import $ from 'jquery';
 import moment from 'moment';
+import Cookies from 'js-cookie'
 
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
- 
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [korisnik, setKorisnik] = useState(null);
   const [mojdatum, setmojdatum] = useState();
 
+  const [isActive, setIsActive] = useState(false);
+
+  const navigate = useNavigate();
+
+  const toggleActive = () => {
+    setIsActive(!isActive);
+  };
+
+
+
+  const prosledi = (id) =>{
+    const path = window.location.pathname;
+    console.log(path);
+    Cookies.set("tudjiID", id);
+    if(path==="/profilkorisnika")
+    {
+      window.location.reload();
+    }
+    else{
+      navigate('/profilkorisnika');
+    }
+    
+
+    
+  }
+
+  // useEffect(() => {
+  //   $(document).ready(function() {
+  //     $(".user-info").on("click", function(){
+  //       $(this).next(".user-account-settingss").toggleClass("active");
+  //     });
+  //   });
+  // }, []);
 
 
   const handleMenuToggle = () => {
@@ -37,7 +72,7 @@ function Header() {
     e.preventDefault();
 
     try {
-      const response = await fetch(`https://localhost:7186/Korisnik/VratiKorisnikeSearch/${searchValue}`);
+      const response = await fetch(`http://localhost:7186/Korisnik/VratiKorisnikeSearch/${searchValue}`);
       const data = await response.json();
       console.log(response);
       console.log(data);
@@ -73,7 +108,7 @@ function Header() {
       }
 
       try {
-        const response = await fetch(`https://localhost:7186/Korisnik/VratiKorisnikeSearch/${searchValue}`);
+        const response = await fetch(`http://localhost:7186/Korisnik/VratiKorisnikeSearch/${searchValue}`);
         const data = await response.json();
         if (data.kraj === 'KRAJ') {
           setSearchResults([]);
@@ -97,8 +132,8 @@ function Header() {
   };
   
   const ucitajKorisnika = () => {
-    const korisnik_Id = 1;
-    const url = `https://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
+    const korisnik_Id = Cookies.get("userID");
+    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
@@ -131,7 +166,7 @@ function Header() {
                 <input
                   type="text"
                   name="search"
-                  placeholder="Search..."
+                  placeholder="Pretrazi korisnike..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   autoComplete="off"
@@ -140,18 +175,17 @@ function Header() {
                 {/* Prikaz rezultata pretrage */}
                 {searchResults.length > 0 && (
                   <div className="search-results">
-                    <ul className="search-results-list">
-                      {searchResults.map((result) => (
-                        <li key={result.ID} className="search-result-item">
-                          <div className='search-podaci'>
+                  <ul className="search-results-list">
+                    {searchResults.map((result) => (
+                      <li key={result.id} className="search-result-item">
+                        <div className='search-podaci' onClick={() => {prosledi(result.id)}}>
                             <span className='prvispansearch'>@{result.korisnicko_Ime}</span>
-                            <span>{result.ime} {result.prezime}</span>
-                          </div>
-                          
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                            <span>{result.ime} {result.prezime}</span> 
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 )}
               </form>
             </div>
@@ -170,12 +204,12 @@ function Header() {
                     <Link to="/profil">Profil</Link>
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="#" className="not-box-open">
                     <span><img src="images/icon6.png" /></span>
                     Poruke
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a href="#" className="not-box-open notifikacije-u-hederu" onClick={prikaziFormu} style={{ display: 'none' }}>
                     <span><img src="images/icon7.png" /></span>
@@ -188,25 +222,33 @@ function Header() {
             <a href="#" onClick={handleMenuToggle}><i className="fa fa-bars" /></a>
             </div>
             <div className="user-account">
-            {korisnik ? (
-              <div className="user-info">
-                <img className="profilnaslikaheader"
-                                    src={korisnik.korisnikImage ? `https://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/50x50"} />
-                <a href="#">{korisnik.ime}</a>
-                <i className="la la-sort-down" />
-              </div>) : (
-                              <p>Korisnik nije dostupan</p>
-                            )}
-              <div className="user-account-settingss">         
-                <h3>Podesavanja</h3>
-                <ul className="us-links">
-                  <li><a href="profile-account-setting.html">Podesavanja profila</a></li>
-                  {/* <li><a href="#">Privacy</a></li>
-                  <li><a href="#">Faqs</a></li>
-                  <li><a href="#">Terms &amp; Conditions</a></li> */}
-                </ul>
-                <h3 className="tc"><a href="sign-in.html">Logout</a></h3>
-              </div>
+              {korisnik ? (
+                <>
+                  <div className="user-info">
+                    <img
+                      className="profilnaslikaheader"
+                      src={korisnik.korisnikImage ? `http://localhost:7186/resources/${korisnik.korisnikImage}` : "http://via.placeholder.com/50x50"}
+                    />
+                    <a href="#">{korisnik.ime}</a>
+                    <i className={`la la-sort-down ${isActive ? 'active' : ''}`} onClick={toggleActive} />
+                  </div>
+                  {isActive && (
+                    <div className="user-account-settingss active">
+                      {/* <h3>Podesavanja</h3>
+                      <ul className="us-links">
+                        <li><a href="profile-account-setting.html">Podesavanja profila</a></li>
+                      </ul> */}
+                      <h3 className="tc">
+                        <Link to="/">
+                          <a className='odjavise'>Odjavi se</a>
+                        </Link>
+                      </h3>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>Korisnik nije dostupan</p>
+              )}
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import $ from 'jquery';
+import Cookies from 'js-cookie'
 // import moment from 'moment';
 
 function NapraviDogadjaj() {
@@ -42,12 +43,14 @@ const kreirajDogadjaj = async (e) => {
     return;
   }
 
-  const kreator = 2; // Hardkodirani kreator
+  // const kreator = 2; // Hardkodirani kreator
+  const kreator = Cookies.get('userID');
   const datumObjave = new Date().toISOString().split('T')[0]; // danasnji datum u formatu YYYY-MM-DD
   const formattedDatumDogadjaja = datumDogadjaja.toISOString().split('T')[0]; //lepo isece datum dogadjaja
 
   try {
-    const response = await fetch(`https://localhost:7186/Dogadjaj/DodajDogadjaj/${kreator}/${datumObjave}/${naslov}/${formattedDatumDogadjaja}/${vremePocetka}/${opis}/${kategorija}/${x}/${y}`, {
+    
+    const response = await fetch(`http://localhost:7186/Dogadjaj/DodajDogadjaj/${kreator}/${datumObjave}/${naslov}/${formattedDatumDogadjaja}/${vremePocetka}/${opis}/${kategorija}/${x}/${y}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,29 +63,28 @@ const kreirajDogadjaj = async (e) => {
       //console.log(await response.text())
       //const dogadjajId = await response.json();// OVDE UZIMAMO ID OD OBJAVE KOJU SMO NAPRAVILI FETCHEM IZNAD
       const responseData = await response.json();
-      const dogadjajId = responseData.dogadjajId;
+      const dogadjajId = responseData.id;
       //console.log(dogadjajId);
-      const fajl = new FormData();
-      fajl.append('slika', slika);
-      //console.log(slika);
-      //console.log(fajl);
-      //const dogadjajId=101;
-      let risponz = await fetch(`https://localhost:7186/Dogadjaj/DodajSlikuDogadjaju/dogadjaj_id=${kreator}`, {
+      let formData = new FormData();
+      formData.append('fajl', slika);
+      
+      let risponz = await fetch(`http://localhost:7186/Dogadjaj/DodajSlikuDogadjaju?dogadjaj_id=${dogadjajId}`, {
         method: 'POST',
-        body: fajl
+        body: formData
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log(risponz);
           console.log(data);
           // Obrada odgovora
-          setSlika((prevKorisnik) => ({ ...prevKorisnik, slika: data.slika }));
-          if (slika) {
-            window.location.reload();
-          }
+          setSlika((prevKorisnik) => ({ ...prevKorisnik, slika: data.Message }));
+          window.location.reload();
           setSlika(null);
+        })
+        .catch((error) => {
+          console.log("Došlo je do greške prilikom izvršavanja zahteva:", error);
+          // Dodajte dalju logiku ili manipulaciju prema potrebi
         });
-        console.log(risponz);
+      console.log(risponz);
     }
   } catch (error) {
     console.error(error);

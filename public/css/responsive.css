@@ -56,6 +56,12 @@
 
 
 @media (max-width: 991px) {
+	.post-popup{width: 570px;
+		height: 101%;
+		margin: 0 auto;
+		position: fixed;
+		top: 48%;
+		left: 50%;}
 	.sgt-text span {font-size: 14px;}
 	/* main {padding: 20px 0 60px 0;} */
 	.user-specs span {font-size: 13px;}
@@ -102,6 +108,14 @@
 
 
 @media (max-width: 768px) {
+	.post-popup{width: 570px;
+		height: 100%;
+		margin: 0 auto;
+		position: fixed;
+		top: 55%;
+		left: 50%;
+		overflow: scroll;}
+	.pr_dog_klasa {padding-left: 10%; padding-right: 10%; padding-top: 80px;}
 	.login_register {display: none;}
 	.forum-bar ul {float: right;}
 	.comment_box input {width: 84%;}
@@ -131,6 +145,7 @@
 
 
 @media (max-width: 576px) {
+	.pr_dog_klasa {padding-left: 4%; padding-right: 4%; padding-top: 120px;}
 	.signin-pop {margin-bottom: 40px;}
 	.login-resources ul li {margin-bottom: 7px;}
 	.logo {width: 100%;text-align: center;}
@@ -201,10 +216,11 @@
 
 	@media (max-width: 1015px)
 {
-    .pr_dog_klasa {padding-left: 5%; padding-right: 5%; padding-top: 150px;}
+    /* .pr_dog_klasa {padding-left: 20%; padding-right: 20%; padding-top: 80px;} */
 }
 
 @media (max-width: 410px) {
+	.pr_dog_klasa {padding-left: 4%; padding-right: 4%; padding-top: 120px;}
 	.komentardiv,
   .posaljidiv,
   .prijavidiv {padding: 10px 4px;text-align: center;}

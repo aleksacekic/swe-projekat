@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import Cookies from 'js-cookie'
 function Reakcije({ dogadjaj_Id, IDucitanidogadjaji }) {
   const [zainteresovanActive, setZainteresovanActive] = useState(false);
   const [mozdaActive, setMozdaActive] = useState(false);
@@ -11,10 +11,10 @@ function Reakcije({ dogadjaj_Id, IDucitanidogadjaji }) {
       try {
         console.log(IDucitanidogadjaji);
         //const dogadjajiIds = [39, 40, 43]; // Primer niza ID-jeva događaja
-        const idKorisnika = 1; // ID korisnika
+        const idKorisnika = Cookies.get('userID'); // ID korisnika
 
         const queryString = IDucitanidogadjaji.join('%2C');
-        const url = `https://localhost:7186/Reakcija/VratiReakcije/${idKorisnika}/${queryString}`;
+        const url = `http://localhost:7186/Reakcija/VratiReakcije/${idKorisnika}/${queryString}`;
 
         const response = await fetch(url, {
           method: 'GET',
@@ -74,7 +74,7 @@ function Reakcije({ dogadjaj_Id, IDucitanidogadjaji }) {
 
   const handleReactionClick = async (tip) => {
     try {
-      const korisnik_Id = 1; // ID korisnika
+      const korisnik_Id = Cookies.get('userID'); // ID korisnika
       const dogadjaj_id = dogadjaj_Id; // ID događaja
 
       // Provera da li postoji prethodno označena reakcija
@@ -84,7 +84,7 @@ function Reakcije({ dogadjaj_Id, IDucitanidogadjaji }) {
         );
 
         // Ako postoji prethodna reakcija, koristi PUT metodu
-        const url = `https://localhost:7186/Reakcija/PromeniReakciju/${prethodnaReakcija}/${tip}/${korisnik_Id}/${dogadjaj_id}`;
+        const url = `http://localhost:7186/Reakcija/PromeniReakciju/${prethodnaReakcija}/${tip}/${korisnik_Id}/${dogadjaj_id}`;
 
         const response = await fetch(url, {
           method: 'PUT',
@@ -120,7 +120,7 @@ function Reakcije({ dogadjaj_Id, IDucitanidogadjaji }) {
         }
       } else {
         // Ako ne postoji prethodno označena reakcija, koristi POST metodu
-        const url = `https://localhost:7186/Reakcija/PostaviReakciju/${tip}/${korisnik_Id}/${dogadjaj_id}`;
+        const url = `http://localhost:7186/Reakcija/PostaviReakciju/${tip}/${korisnik_Id}/${dogadjaj_id}`;
 
         const response = await fetch(url, {
           method: 'POST',

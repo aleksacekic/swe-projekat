@@ -1,13 +1,19 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie'
+import { useNavigate } from 'react-router-dom';
+import { ko } from 'date-fns/locale';
 
-function Komentari({ dogadjajId, prikazaniDogadjaj }) {
+function Komentari({ dogadjajId, prikazaniDogadjaj, korisnikovaSlika }) {
 
   const [komentari, setKomentari] = useState([]);
   const [noviKomentar, setNoviKomentar] = useState('');
   const [izmenjenKomentar, setIzmenjenKomentar] = useState('');
   const [izabraniKomentarId, setIzabraniKomentarId] = useState(null);
   const [izmenjenTekstKomentara, setIzmenjenTekstKomentara] = useState('');
+  const [korisnik, setKorisnik] = useState(null);
+  const navigate = useNavigate();
+  
 
   // GET KOMENTARA
   useEffect(() => {
@@ -16,7 +22,7 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
 
   const fetchKomentari = async () => {
     try {
-      const response = await fetch(`https://localhost:7186/Komentar/VratiKomentare/${dogadjajId}`);
+      const response = await fetch(`http://localhost:7186/Komentar/VratiKomentare/${dogadjajId}`);
       //console.log(response);
       if (response.ok) {
         const komentari = await response.json();
@@ -40,17 +46,20 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
+      const korisnik_Id = Cookies.get("userID");
       const response = await fetch(
-        `https://localhost:7186/Komentar/PostaviKomentar/${noviKomentar}/lord0160/${dogadjajId}`,
+        `http://localhost:7186/Komentar/PostaviKomentar/${noviKomentar}/${korisnik_Id}/${dogadjajId}`,
         {
           method: 'POST',
+          credentials: 'include',
         }
       );
       if (response.ok) {
         fetchKomentari();
         setNoviKomentar('');
-      } else {
-        console.error('Slanje komentara nije uspelo!');
+      } else if (response.status === 401){
+        console.log('Slanje komentara nije uspelo!');
+        navigate('/')
       }
     } catch (error) {
       console.error('Greska prilikom slanja komentara!', error);
@@ -61,7 +70,7 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
   const handleDeleteComment = async (commentId) => {
     try {
       const response = await fetch(
-        `https://localhost:7186/Komentar/IzbrisiKomentar/${commentId}`,
+        `http://localhost:7186/Komentar/IzbrisiKomentar/${commentId}`,
         {
           method: 'DELETE',
         }
@@ -87,7 +96,7 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
   const handleUpdateComment = async (commentId) => {
     try {
       const response = await fetch(
-        `https://localhost:7186/Komentar/IzmeniKomentar?id=${commentId}&tekst=${izmenjenTekstKomentara}`,
+        `http://localhost:7186/Komentar/IzmeniKomentar?id=${commentId}&tekst=${izmenjenTekstKomentara}`,
         {
           method: 'PUT',
         }
@@ -105,6 +114,30 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
   };
 
 
+  useEffect(() => {
+    ucitajKorisnika();
+  }, []);
+  const ucitajKorisnika = () => {
+    console.log("USO SAM !")
+    const korisnik_Id = Cookies.get('userID');
+    console.log(korisnik_Id);
+    const url = `http://localhost:7186/Korisnik/VratiKorisnika_ID/${korisnik_Id}`;
+    console.log(url);
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        //console.log(data.datum_rodjenja);
+        setKorisnik(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+      console.log("samo sam preskocio sve");
+  };
+
+  
+
   return (
     <div>
       {komentari.length > 0 && dogadjajId === prikazaniDogadjaj ? (
@@ -116,7 +149,12 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
               <li key={komentar.id}>
                 <div className="comment-list">
                   <div className="bg-img">
-                    <img src="http://via.placeholder.com/40x40" alt="" />
+                  <img 
+                  className='slikakorisnikakomentar'  
+                   src={komentar.slikaKorisnika ? `http://localhost:7186/resources/${komentar.slikaKorisnika}` : "http://via.placeholder.com/40x40"}
+            />
+            
+
                   </div>
                   <div className="comment">
                     <h3>{komentar.username_korisnika}</h3>
@@ -135,7 +173,8 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
                         komentar.tekst
                       )}
                     </p>
-                    <div className="comment-buttons">
+                    {korisnik && korisnik.korisnicko_Ime === komentar.username_korisnika ? (
+                      <div className="comment-buttons">
                       {izabraniKomentarId === komentar.id ? (
                         <>
                           <button onClick={() => handleUpdateComment(komentar.id)}>
@@ -154,6 +193,9 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
                         Obrisi
                       </button>
                     </div>
+                    ) : (console.log("Nema brt"))}
+                      
+                    
                   </div>
                 </div>
               </li>
@@ -167,7 +209,12 @@ function Komentari({ dogadjajId, prikazaniDogadjaj }) {
 
       <div className="post-comment">
         <div className="cm_img">
-          <img src="http://via.placeholder.com/40x40" alt="" />
+
+        <img 
+                  className='slikakorisnikakomentar'  
+                   src={korisnikovaSlika ? `http://localhost:7186/resources/${korisnikovaSlika}` : "http://via.placeholder.com/40x40"}
+            />
+
         </div>
         <div className="comment_box">
           <form onSubmit={handleFormSubmit}>

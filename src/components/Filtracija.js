@@ -6,6 +6,7 @@ import { registerLocale } from "react-datepicker"
 import srLatn from "date-fns/locale/sr-Latn";
 import { format } from 'date-fns';
 import Dogadjaj from './Dogadjaj'
+import Cookies from 'js-cookie'
 
 function Filtracija() {
 //#region 
@@ -32,7 +33,7 @@ const [filtriraniDogadjaji, setFiltriraniDogadjaji] = useState([]);
     const pretraziDogadjaje = async (e) => {
       try {
         const formattedDate = format(date, 'yyyy-MM-dd');
-        const url = `https://localhost:7186/Dogadjaj/VratiDogadjajePoDatumu/${formattedDate}/${brojPosiljke}/${ukupnoElemenata}`;
+        const url = `http://localhost:7186/Dogadjaj/VratiDogadjajePoDatumu/${formattedDate}/${brojPosiljke}/${ukupnoElemenata}`;
   
         const response = await fetch(url);
         //console.log(response);
